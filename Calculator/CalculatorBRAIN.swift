@@ -12,6 +12,28 @@ class CalculatorBrain
 {
     private var acumulator: Double = 0.0
     
+    private var internalProgram = [AnyObject]()
+    
+    typealias PropertyList = AnyObject
+    
+    var program:PropertyList {
+        get {
+            return internalProgram as CalculatorBrain.PropertyList
+        }
+        set {
+            clear()
+            if let arrayofOps = newValue as? [AnyObject] {
+                for op in arrayofOps {
+                    if let operand = op as? Double {
+                        setOperand(operand: operand)
+                    } else if let operation = op as? String {
+                        performOperation(symbol: operation)
+                    }
+                }
+            }
+        }
+    }
+    
     private var descriptionAcumulator = "0" {
         didSet {
             if pending == nil {
@@ -21,9 +43,11 @@ class CalculatorBrain
     }
     
     private var currentPrecedence = Int.max
+    
     func setOperand(operand: Double) {
         acumulator = operand
         descriptionAcumulator = String(format: "%g", operand)
+        internalProgram.append(operand as AnyObject)
     }
     
     private var operation: Dictionary<String,Operation> = [
@@ -37,7 +61,7 @@ class CalculatorBrain
         "×" : Operation.BinaryOperation(*,{ $0 + "×" + $1},1), //multiplication
         "÷" : Operation.BinaryOperation(/,{ $0 + "÷" + $1},1), //division
         "+" : Operation.BinaryOperation(+,{ $0 + "+" + $1},1), //adition
-        "-" : Operation.BinaryOperation(/,{ $0 + "-" + $1},1), //subtraction
+        "-" : Operation.BinaryOperation(-,{ $0 + "-" + $1},1), //subtraction
         "=" : Operation.Equals, // =
         "C" : Operation.Clear  // clear
     ]
@@ -67,6 +91,9 @@ class CalculatorBrain
     }
     
     func performOperation(symbol: String) {
+        
+        internalProgram.append(symbol as AnyObject)
+        
         if let operation = operation[symbol] {
             
             switch operation {
@@ -100,6 +127,7 @@ class CalculatorBrain
         acumulator = 0
         descriptionAcumulator = ""
         pending = nil
+        internalProgram.removeAll()
         
     }
     

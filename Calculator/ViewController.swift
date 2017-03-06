@@ -68,6 +68,21 @@ class ViewController: UIViewController
         }
     }
     
+    var savedProgram: CalculatorBrain.PropertyList?
+    
+    //this part is not needed is just for testing
+    @IBAction func save() {
+        savedProgram = brain.program
+    }
+    
+    @IBAction func restore() {
+        if savedProgram != nil {
+            brain.program = savedProgram!
+            displayValue = brain.result
+        }
+    }
+    //here the part not needed ends
+    
     private var brain = CalculatorBrain()
     
     @IBAction private func performOperation(_ sender: UIButton) {
