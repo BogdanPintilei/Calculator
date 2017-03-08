@@ -28,36 +28,32 @@ class ViewController: UIViewController
     private var userIsInTheMiddleOfTyping = false
     
     @IBAction private func touchDigit(_ sender: UIButton) {
+        
         let digit = sender.currentTitle!
         
-        if userIsInTheMiddleOfTyping{
-            if (digit == "."){
-                if(display.text!.range(of: ".") == nil){
+        if userIsInTheMiddleOfTyping {
+            if (digit == ".") {
+                if(display.text!.range(of: ".") == nil) {
                     //if the "." already exists in the number it can not add another one
                     display.text = display.text! + "."
                 }
-                
-            }else{
-                
+            } else {
                 display.text = display.text! + digit
-                
             }
-            
         } else {
             if (digit != ".")
             {
                 display.text = digit
             }
         }
-        
         userIsInTheMiddleOfTyping = true
     }
     
-    private var displayValue: Double{
-        get{
+    private var displayValue: Double {
+        get {
             return Double(display.text!)!
         }
-        set{
+        set {
             display.text = String(newValue)
         }
     }
@@ -65,18 +61,15 @@ class ViewController: UIViewController
     private var brain = CalculatorBrain()
     
     @IBAction private func performOperation(_ sender: UIButton) {
-        if userIsInTheMiddleOfTyping{
+        if userIsInTheMiddleOfTyping {
             brain.setOperand(operand: displayValue)
             userIsInTheMiddleOfTyping = false
         }
-        if let mathematicalSymbol = sender.currentTitle{
+        if let mathematicalSymbol = sender.currentTitle {
             brain.performOperation(symbol: mathematicalSymbol)
         }
         
         displayValue = brain.result
-
         descriptionLabel.text = brain.description
-        
-        
     }
 }
