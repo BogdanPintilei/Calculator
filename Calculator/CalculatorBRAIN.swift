@@ -63,15 +63,17 @@ class CalculatorBrain
         "+" : Operation.BinaryOperation(+,{ $0 + "+" + $1},1), //adition
         "-" : Operation.BinaryOperation(-,{ $0 + "-" + $1},1), //subtraction
         "=" : Operation.Equals, // =
-        "C" : Operation.Clear  // clear
+        "C" : Operation.Clear,  // clear
+        "s" : Operation.Save,   // save
+        "r" : Operation.Restore // resotre
     ]
     
     var description: String {
         get {
             if pending == nil {
-                return descriptionAcumulator
+                return descriptionAcumulator // IF I WANT EQUAL "=" TO SHOW HERE IT IS WHERE I APPEND
             } else {
-                return pending!.descriptionFunction(pending!.descriptionOperand,pending!.descriptionOperand != descriptionAcumulator ? descriptionAcumulator : "")
+                return pending!.descriptionFunction(pending!.descriptionOperand,pending!.descriptionOperand != descriptionAcumulator ? descriptionAcumulator : " ...")
             }
         }
     }
@@ -88,6 +90,8 @@ class CalculatorBrain
         case BinaryOperation((Double,Double)-> Double,(String,String)->String,Int)
         case Equals
         case Clear
+        case Save
+        case Restore
     }
     
     func performOperation(symbol: String) {
@@ -117,8 +121,14 @@ class CalculatorBrain
             case .Equals:
                 executePendingOperation()
                 
-            case.Clear:
+            case .Clear:
                 clear()
+            
+            case .Save:
+                Save()
+                
+            case .Restore:
+                Restore()
             }
         }
     }
@@ -129,6 +139,23 @@ class CalculatorBrain
         pending = nil
         internalProgram.removeAll()
         
+    }
+    
+    private var savedProgram: Bool = false
+    private var savedAcumulator: Double = 0.0
+    private var savedDescriptionAcumulator: String = ""
+   
+    private func Save () {
+        savedProgram = true
+        savedAcumulator = acumulator
+        savedDescriptionAcumulator = descriptionAcumulator
+    }
+    
+    private func Restore () {
+        if savedProgram == true {
+            acumulator = savedAcumulator
+            descriptionAcumulator = savedDescriptionAcumulator
+        }
     }
     
     private func executePendingOperation() {
