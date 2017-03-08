@@ -1,4 +1,3 @@
-
 //
 //  ViewController.swift
 //  Calculator
@@ -6,11 +5,6 @@
 //  Created by Bogdan Pintilei on 2/27/17.
 //  Copyright © 2017 Bogdan Pintilei. All rights reserved.
 //
-
-
-/*
- A doua versiune a calculatorului nu merge la fel de bine dar e diferit ca metoda impelmentare,(Pastrat ca exemplu daca am nevoie de ceva)
- */
 
 import UIKit
 
