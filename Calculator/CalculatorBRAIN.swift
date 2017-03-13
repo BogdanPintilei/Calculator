@@ -14,6 +14,8 @@ class CalculatorBrain
     
     private var internalProgram = [AnyObject]()
     
+    var variableValues = [String : Double] ()
+    
     typealias PropertyList = AnyObject
     
     var program:PropertyList {
@@ -28,6 +30,10 @@ class CalculatorBrain
                         setOperand(operand: operand)
                     } else if let operation = op as? String {
                         performOperation(symbol: operation)
+                    } else if let variableName = op as? String {
+                        if variableValues[variableName] != nil {
+                            setOperand(variableName)
+                        }
                     }
                 }
             }
@@ -50,6 +56,13 @@ class CalculatorBrain
         internalProgram.append(operand as AnyObject)
     }
     
+    func setOperand(_ variableName: String) {
+        variableValues[variableName] = variableValues[variableName] ?? 0.0
+        acumulator = variableValues[variableName]!
+        descriptionAcumulator = variableName
+        internalProgram.append(variableName as AnyObject)
+    }
+    
     private var operation: Dictionary<String,Operation> = [
         "π" : Operation.Constant(M_PI),//M_PI,
         "e" : Operation.Constant(M_E), //M_E,
@@ -57,7 +70,8 @@ class CalculatorBrain
         "cos" : Operation.UnaryOperation(cos,{"cos(" + $0 + ")"}), //cos
         "sin" : Operation.UnaryOperation(sin,{"sin(" + $0 + ")"}), //sin
         "ln" : Operation.UnaryOperation(log,{"ln(" + $0 + ")"}), //ln
-        "x²":Operation.UnaryOperation({pow($0,2)},{"(" + $0 + ")²"}), //pow
+        "x²":Operation.UnaryOperation({pow($0,2)},{"(" + $0 + ")²"}), //pow 2
+        "xʸ" : Operation.BinaryOperation(pow, { $0 + " ^ " + $1 }, 2), // x^y
         "×" : Operation.BinaryOperation(*,{ $0 + "×" + $1},1), //multiplication
         "÷" : Operation.BinaryOperation(/,{ $0 + "÷" + $1},1), //division
         "+" : Operation.BinaryOperation(+,{ $0 + "+" + $1},1), //adition
@@ -71,14 +85,14 @@ class CalculatorBrain
     var description: String {
         get {
             if pending == nil {
-                return descriptionAcumulator // IF I WANT EQUAL "=" TO SHOW HERE IT IS WHERE I APPEND
+                return descriptionAcumulator //+ " = "// IF I WANT EQUAL "=" TO SHOW HERE IT IS WHERE I APPEND
             } else {
                 return pending!.descriptionFunction(pending!.descriptionOperand,pending!.descriptionOperand != descriptionAcumulator ? descriptionAcumulator : " ...")
             }
         }
     }
     
-    var isPartialResult: Bool {
+    private var isPartialResult: Bool {
         get {
             return pending != nil
         }
@@ -123,7 +137,7 @@ class CalculatorBrain
                 
             case .Clear:
                 clear()
-            
+                
             case .Save:
                 Save()
                 
@@ -132,7 +146,7 @@ class CalculatorBrain
             }
         }
     }
-
+    
     func clear() {
         acumulator = 0
         descriptionAcumulator = ""
@@ -144,7 +158,7 @@ class CalculatorBrain
     private var savedProgram: Bool = false
     private var savedAcumulator: Double = 0.0
     private var savedDescriptionAcumulator: String = ""
-   
+    
     private func Save () {
         savedProgram = true
         savedAcumulator = acumulator
@@ -168,7 +182,7 @@ class CalculatorBrain
     
     private var pending:PendingBinaryOperationInfo?
     
-    private struct PendingBinaryOperationInfo{
+    private struct PendingBinaryOperationInfo {
         var binaryFunction: (Double,Double)->Double
         var firstOperand: Double
         var descriptionFunction: (String,String)->String
@@ -178,6 +192,25 @@ class CalculatorBrain
     var result: Double {
         get{
             return acumulator
+        }
+    }
+    
+    func Undo() {
+        if !internalProgram.isEmpty {
+            internalProgram.removeLast()
+            program = internalProgram as CalculatorBrain.PropertyList
+        } else {
+            clear()
+            descriptionAcumulator = ""
+        }
+    }
+    
+    func getDescription() ->String {
+        let whiteSpace = (description.hasSuffix(" ") ? "" : " ")
+        if isPartialResult == true {
+            return String(description + whiteSpace + "")//show "..." if you want
+        } else {
+            return (String(description) +  whiteSpace +  "=")
         }
     }
 }
