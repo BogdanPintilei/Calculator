@@ -43,12 +43,16 @@ class CalculatorBrain
     private var descriptionAcumulator = "0" {
         didSet {
             if pending == nil {
-                currentPrecedence = Int.max
+                currentPrecedence = Precedence.max
             }
         }
     }
     
-    private var currentPrecedence = Int.max
+    private enum Precedence: Int {
+        case min = 0, max
+    }
+    
+    private var currentPrecedence = Precedence.max
     
     func setOperand(operand: Double) {
         acumulator = operand
@@ -71,11 +75,11 @@ class CalculatorBrain
         "sin" : Operation.UnaryOperation(sin,{"sin(" + $0 + ")"}), //sin
         "ln" : Operation.UnaryOperation(log,{"ln(" + $0 + ")"}), //ln
         "x²":Operation.UnaryOperation({pow($0,2)},{"(" + $0 + ")²"}), //pow 2
-        "xʸ" : Operation.BinaryOperation(pow, { $0 + " ^ " + $1 }, 2), // x^y
-        "×" : Operation.BinaryOperation(*,{ $0 + "×" + $1},1), //multiplication
-        "÷" : Operation.BinaryOperation(/,{ $0 + "÷" + $1},1), //division
-        "+" : Operation.BinaryOperation(+,{ $0 + "+" + $1},1), //adition
-        "-" : Operation.BinaryOperation(-,{ $0 + "-" + $1},1), //subtraction
+        "xʸ" : Operation.BinaryOperation(pow, { $0 + " ^ " + $1 }, Precedence.max), // x^y
+        "×" : Operation.BinaryOperation(*,{ $0 + "×" + $1},Precedence.max), //multiplication
+        "÷" : Operation.BinaryOperation(/,{ $0 + "÷" + $1},Precedence.max), //division
+        "+" : Operation.BinaryOperation(+,{ $0 + "+" + $1},Precedence.max), //adition
+        "-" : Operation.BinaryOperation(-,{ $0 + "-" + $1},Precedence.max), //subtraction
         "=" : Operation.Equals, // =
         "C" : Operation.Clear,  // clear
         "s" : Operation.Save,   // save
@@ -87,12 +91,12 @@ class CalculatorBrain
             if pending == nil {
                 return descriptionAcumulator //+ " = "// IF I WANT EQUAL "=" TO SHOW HERE IT IS WHERE I APPEND
             } else {
-                return pending!.descriptionFunction(pending!.descriptionOperand,pending!.descriptionOperand != descriptionAcumulator ? descriptionAcumulator : " ...")
+                return pending!.descriptionFunction(pending!.descriptionOperand,pending!.descriptionOperand != descriptionAcumulator ? descriptionAcumulator : "")
             }
         }
     }
     
-    private var isPartialResult: Bool {
+    var isPartialResult: Bool {
         get {
             return pending != nil
         }
@@ -101,7 +105,7 @@ class CalculatorBrain
     private enum Operation {
         case Constant(Double)
         case UnaryOperation((Double) ->Double,(String)->String)
-        case BinaryOperation((Double,Double)-> Double,(String,String)->String,Int)
+        case BinaryOperation((Double,Double)-> Double,(String,String)->String,Precedence)
         case Equals
         case Clear
         case Save
@@ -126,7 +130,7 @@ class CalculatorBrain
                 
             case .BinaryOperation (let function,let descriptionFunction,let precedence):
                 executePendingOperation()
-                if currentPrecedence < precedence {
+                if currentPrecedence.rawValue < precedence.rawValue {
                     descriptionAcumulator = "(" + descriptionAcumulator + ")"
                 }
                 currentPrecedence = precedence
@@ -207,10 +211,6 @@ class CalculatorBrain
     
     func getDescription() ->String {
         let whiteSpace = (description.hasSuffix(" ") ? "" : " ")
-        if isPartialResult == true {
-            return String(description + whiteSpace + "")//show "..." if you want
-        } else {
-            return (String(description) +  whiteSpace +  "=")
-        }
+        return isPartialResult ? (description + whiteSpace + "...") : (description + whiteSpace + "=")
     }
 }

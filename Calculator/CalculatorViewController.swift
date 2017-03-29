@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ViewController: UIViewController
+class CalculatorViewController: UIViewController
 {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,6 +19,8 @@ class ViewController: UIViewController
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+ 
+    @IBOutlet weak var graphButton: UIButton!
     
     @IBOutlet private weak var display: UILabel!
     
@@ -29,26 +31,27 @@ class ViewController: UIViewController
     private func updateUI() {
         descriptionLabel.text = (brain.description.isEmpty ? " " : brain.getDescription())
         displayValue = brain.result
+        //Reflect weather or not is posible to graph
+        //what has been entered so far (whether is a partial result or not).
+        graphButton.isEnabled = !brain.isPartialResult
+        
     }
     
     @IBAction private func touchDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
         if userIsInTheMiddleOfTyping {
-            if (digit == ".") {
-                if(display.text!.range(of: ".") == nil) {
-                    //if the "." symbol already exists in the number it can not add another symbol like it
-                    display.text = display.text! + "."
-                }
-            } else {
-                display.text = display.text! + digit
+            let textCurrentlyInDisplay = display.text!
+            if digit != "." || textCurrentlyInDisplay.range(of: ".") == nil {
+                display.text = textCurrentlyInDisplay + digit
             }
         } else {
-            if (digit != ".")
-            {
+            if digit == "." {
+                display.text = "0."
+            } else {
                 display.text = digit
             }
+            userIsInTheMiddleOfTyping = true
         }
-        userIsInTheMiddleOfTyping = true
     }
     
     private var displayValue: Double? {
@@ -64,7 +67,7 @@ class ViewController: UIViewController
                 formatter.numberStyle = .decimal
                 formatter.maximumFractionDigits = Constants.Math.numberOfDigitsAfterDecimalPoint
                 let valueConverted = NSNumber(value: value)
-                display.text = NumberFormatter().string(from: valueConverted)
+                display.text = formatter.string(from: valueConverted)
                 descriptionLabel.text = brain.getDescription()
             } else {
                 display.text = "0"
@@ -124,5 +127,34 @@ class ViewController: UIViewController
         }
         
         updateUI()
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let identifier = segue.identifier {
+            switch identifier {
+                case "show_Graph":
+                    guard !brain.isPartialResult else {
+                        NSLog(Constants.Error.partialResult)
+                        return
+                }
+                
+                var destinationVC = segue.destination
+                    if let nvc = destinationVC as? UINavigationController {
+                        destinationVC = nvc.visibleViewController ?? destinationVC
+                }
+                
+                    if let vc = destinationVC as? GraphViewController {
+                        vc.navigationItem.title = brain.description
+                        vc.function = {
+                            (x: CGFloat) -> Double in
+                            self.brain.variableValues[Constants.Math.variableName] = Double(x)
+                            // Trick with a computed property
+                            self.brain.program = self.brain.program
+                            return self.brain.result
+                        }
+                }
+            default: break
+            }
+        }
     }
 }
