@@ -57,7 +57,7 @@
 		5A0A8FAB1E8BEF4600E60EEB /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
-				5A2EBB781E895333002F56B4 /* GraphView.swift */,
+				5A2EBB761E89523D002F56B4 /* GraphViewController.swift */,
 				5A88EC9A1E6449F900C28E30 /* CalculatorViewController.swift */,
 			);
 			name = Controllers;
@@ -75,7 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				5A88EC9C1E6449F900C28E30 /* Main.storyboard */,
-				5A2EBB761E89523D002F56B4 /* GraphViewController.swift */,
+				5A2EBB781E895333002F56B4 /* GraphView.swift */,
 			);
 			name = View;
 			sourceTree = "<group>";

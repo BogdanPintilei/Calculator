@@ -139,21 +139,22 @@ class CalculatorViewController: UIViewController
                 }
                 
                 var destinationVC = segue.destination
-                    if let nvc = destinationVC as? UINavigationController {
-                        destinationVC = nvc.visibleViewController ?? destinationVC
+                if let nvc = destinationVC as? UINavigationController {
+                    destinationVC = nvc.visibleViewController ?? destinationVC
+                }
+            
+                if let vc = destinationVC as? GraphViewController {
+                    vc.navigationItem.title = brain.description
+                    vc.function = {
+                        (x: CGFloat) -> Double in
+                        self.brain.variableValues[Constants.Math.variableName] = Double(x)
+                        // Trick with a computed property
+                        self.brain.program = self.brain.program
+                        return self.brain.result
+                    }
                 }
                 
-                    if let vc = destinationVC as? GraphViewController {
-                        vc.navigationItem.title = brain.description
-                        vc.function = {
-                            (x: CGFloat) -> Double in
-                            self.brain.variableValues[Constants.Math.variableName] = Double(x)
-                            // Trick with a computed property
-                            self.brain.program = self.brain.program
-                            return self.brain.result
-                        }
-                }
-            default: break
+                default: break
             }
         }
     }
